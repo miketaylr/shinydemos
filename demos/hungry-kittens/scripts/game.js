@@ -320,10 +320,7 @@ var Game = function() {
 			handlers[o.type](o.data);
 		  }
 		};
-		
-		//**mike: unused...
-		socket.onclose = function () {};
-    
+		    
 		// when the page closes, send socket.close to server to remove cat tied to this page
 		window.addEventListener("unload", function () {
 			socket.close();
