@@ -53,12 +53,6 @@ span.nametag {
     -moz-user-select: none;
     -webkit-user-select: none;
 }
-span.button {
-	font-size: 3.5em;
-  width: 110px;
-  display: block;
-  float: left;
-}
 
 @media screen and (orientation: landscape) and (max-height: 600px),
        handheld and (orientation: landscape) {
