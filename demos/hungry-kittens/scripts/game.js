@@ -12,13 +12,15 @@ var Game = function() {
 	var cats = {};
 	var me, socket;
 
-  // creates a scene using sprite.js
+	// creates a scene using sprite.js
 	var SCENE_WIDTH = 500;
 	var SCENE_HEIGHT = 490;
 	var scene = sjs.Scene({ parent:container, w: SCENE_WIDTH, h: SCENE_HEIGHT, autoPause: false });
+	var scene = scene.Input();
 	var ticker;
 
-  // plays meow sound, if this cat meows also broadcasts to server
+	// plays meow sound, if this cat meows also broadcasts to server
+	//**mike: rewrite this to not create so many dom nodes
 	var meow = function (broadcast) {
 		var a = document.createElement("audio");
 		a.src = "http://media.shinydemos.com/hungry-kittens/meow" + (Math.round(Math.random()*10) % 5) + ".wav";
@@ -59,54 +61,72 @@ var Game = function() {
 	};
 
 	Cat.prototype = Object.create(sjs.Sprite.prototype, {
-		turnHead: { value: function (direction) {
-			if (direction == "left")
-				this.lookLeft();
-			else if (direction == "right")
-				this.lookRight();
-		}},
-
-		lookLeft: { value: function () {
-			this.looking = "left";
-			this.setYOffset(5*this.w);
-		}},
-
-		lookRight: { value: function () {
-			this.looking = "right";
-			this.setYOffset(6*this.w);
-		}},
-
-		walk: { value: function () {
-			this.frame = ++this.frame % 3;
-			this.setXOffset((this.frame + this.race * 3) * this.w);
-		}},
-
-		jump: { value: function() {
-			if (!this.isJumping) {
-				this.isJumping = true;
-				this.ySpeed = this.jumpSpeed;
+		turnHead: {
+			value: function (direction) {
+				if (direction == "left") {
+					this.lookLeft();
+				} else if (direction == "right") {
+					this.lookRight();	
+				}
 			}
-		}},
+		},
 
-		move: { value: function (x, y, boundingX) {
-			sjs.Sprite.prototype.move.call(this, x, y);
-			if (this.x > boundingX)
-				this.setX(-this.w);
-			if (this.x < -this.w)
-				this.setX(boundingX);
+		lookLeft: {
+			value: function () {
+				this.looking = "left";
+				this.setYOffset(5*this.w);
+			}
+		},
+
+		lookRight: {
+			value: function () {
+				this.looking = "right";
+				this.setYOffset(6*this.w);
+			}
+		},
+
+		walk: {
+			value: function () {
+				this.frame = ++this.frame % 3;
+				this.setXOffset((this.frame + this.race * 3) * this.w);
+			}
+		},
+
+		jump: {
+			value: function() {
+				if (!this.isJumping) {
+					this.isJumping = true;
+					this.ySpeed = this.jumpSpeed;
+				}
+			}
+		},
+
+		move: {
+			value: function (x, y, boundingX) {
+				sjs.Sprite.prototype.move.call(this, x, y);
+				if (this.x > boundingX) {
+					this.setX(-this.w);
+				}	
+				if (this.x < -this.w) {
+					this.setX(boundingX);
+				}
 			return this;
 		}},
 
-		update: { value: function () {
-			if (this.isJumping) {
-				this.setY(this.y - this.ySpeed);
-				this.ySpeed--;
-				if (this.ySpeed < -this.jumpSpeed){
-					this.isJumping = false;
+		update: {
+			value: function () {
+				if (this.isJumping) {
+					this.setY(this.y - this.ySpeed);
+					this.ySpeed--;
+					
+					if (this.ySpeed < -this.jumpSpeed){
+						this.isJumping = false;
+					}
 				}
-			}
+				
 			return sjs.Sprite.prototype.update.call(this);
-		}}
+			}
+		}
 	});
 
 	var sendMove = function () {
@@ -121,9 +141,10 @@ var Game = function() {
 		}));
 	};
 
-  // update the cats' positions
+	// update the cats' positions
 	var paint = function() {
-	  //handle user input
+		//handle user input
+		//**miket: probably take this part out
 		var x = 0, y = 0, step = 5;
 
 		if (arrows[LEFT]) {
@@ -139,20 +160,8 @@ var Game = function() {
 		if (arrows[UP]){
 			me.jump();
 		}
-    
-    /* 
-    //debug function, shows the keys that are being pressed
-    var LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
-	var stateNameMapping = [{i: LEFT, n: "left"},
-							{i: UP, n: "up"},
-							{i: RIGHT, n: "right"},
-							{i: DOWN, n: "down"}];
 
-		var msg = stateNameMapping.filter(function (e) { return arrows[e.i] }).map(function (e) { return e.n }).join(" + ");
-		messageBox.innerHTML = msg || "Use the arrows to move.";
-		*/
-    
-    // update cats' positions
+		// update cats' positions
 		for (var id in cats) {
 			var cat = cats[id];
 			// if the cat has left the game, skip it
@@ -164,13 +173,13 @@ var Game = function() {
 				me.move(x, y, SCENE_HEIGHT).update();
 				sendMove();
 			} else {
-			  //update the other cats
+				//update the other cats
 				cat.update();
 			}
 		}
 	};
 
-  // start game
+	// start game
 	var start = function() {
 
 		var defaultName = "Reginald";
@@ -179,18 +188,19 @@ var Game = function() {
 		socket = new WebSocket('ws://' + location.host + '/?name=' + name.slice(0,10));
 
 		var handlers = {
-		  // server sends data about peers in the room when connection is established
+			// server sends data about peers in the room when connection is established
 			"connected": function (data) {
-			  //add a kitten to the scene for each peer
+				//add a kitten to the scene for each peer
 				for (var id in data.cats) {
 					cats[data.cats[id].id] = new Cat(scene, data.cats[id]);
 				}
         
-        // new peer gets id assigned by the server, and appears in random position in the scene
+				// new peer gets id assigned by the server, and appears in random position in the scene
 				me = cats[data.id];
 				me.position(Math.round(Math.random()*SCENE_WIDTH), SCENE_HEIGHT - me.h);
 				sendMove();
 				
+				//**mike: all this stuff can probably go
 				var processKeyDown = function (e) {
 					if (e.keyCode >= 37 && e.keyCode <= 40){
 						arrows[e.keyCode - 37] = true;
@@ -205,43 +215,50 @@ var Game = function() {
 					}
 				};
 				
+				//**mike this stuff is redundant too, also seems a little crazy?
 				var dirs = {left: 37, up: 38, right: 39};
 				for (var dir in dirs) {
 					var button = document.querySelector("#button-" + dir);
 					(function (key) {
 						button.addEventListener('touchstart', function (e) {
-              e.preventDefault();
-              e.stopPropagation();
+							e.preventDefault();
+							e.stopPropagation();
 							processKeyDown({keyCode: key});
 						}, false);
+						
 						button.addEventListener('touchend', function (e) {
-              e.preventDefault();
-              e.stopPropagation();
+							e.preventDefault();
+							e.stopPropagation();
 							processKeyUp({keyCode: key});
-						}, false);						
+						}, false);
+						
 						button.addEventListener('mousedown', function (e) {
-              e.preventDefault();
-              e.stopPropagation();
+							e.preventDefault();
+							e.stopPropagation();
 							processKeyDown({keyCode: key});
 						}, false);
+						
 						button.addEventListener('mouseup', function (e) {
-              e.preventDefault();
-              e.stopPropagation();
+							e.preventDefault();
+							e.stopPropagation();
 							processKeyUp({keyCode: key});
 						}, false);						
 					})(dirs[dir]);
 				}
-        var buttonMeow = document.querySelector("#button-meow");
-        buttonMeow.addEventListener('touchstart', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          processKeyDown({keyCode: 32});
-        }, false);
-        buttonMeow.addEventListener('mouseup', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          processKeyDown({keyCode: 32});
-        }, false);
+				
+				var buttonMeow = document.querySelector("#button-meow");
+				
+				buttonMeow.addEventListener('touchstart', function (e) {
+					e.preventDefault();
+					e.stopPropagation();
+					processKeyDown({keyCode: 32});
+				}, false);
+				
+				buttonMeow.addEventListener('mouseup', function (e) {
+					e.preventDefault();
+					e.stopPropagation();
+					processKeyDown({keyCode: 32});
+				}, false);
 
 				// listen to keydown/keyup events: arrows = [left, up, right, down] keyCodes 37 to 40, and space = 32  
 				window.addEventListener('keydown', processKeyDown, false);
@@ -250,14 +267,14 @@ var Game = function() {
 				document.getElementById("room").innerHTML = data.roomId;
 			},
       
-      // if a new peer connects, the server broadcasts the new cat
+			// if a new peer connects, the server broadcasts the new cat
 			"new-cat": function(cat) {
 				if (cat.id != me.catId){
 					cats[cat.id] = new Cat(scene, cat);
 				}
 			},
       
-      // move all the cats! \o/
+			// move all the cats! \o/
 			"moved": function(data) {
 				for (var id in cats) {
 					var cat = cats[id];
@@ -269,18 +286,18 @@ var Game = function() {
 				}
 			},
       
-      // used by alternative mechanism used to remove cats b/c Opera has problems with "unload" events on window closing
+			// used by alternative mechanism used to remove cats b/c Opera has problems with "unload" events on window closing
 			"ping": function () {
 				socket.send(JSON.stringify({ type: "pong", data: me.catId }));
 			},
 
-      // when a peer closes the window, remove its cat
+			// when a peer closes the window, remove its cat
 			"unload": function (id) {
 				cats[id].remove();
 				delete cats[id];
 			},
 
-      // echo peers' meows
+			// echo peers' meows
 			"meow": function (id) {
 				if (id != me.catId){
 					meow();
@@ -288,12 +305,12 @@ var Game = function() {
 			}
 		};
 
-    /* handle messages:
-    { type: "unload", data: cat.id } -> remove a cat, it provides the cat's id
-    { type: "new-cat", data: cat } -> add a new cat, it gives you the cat
-    { type: "moved", data: rooms[cat.roomId] } -> move the cats, gives you the whole room where the cats are
-    { type: "meow", data: id} -> echo meow, provides id of the meowing cat
-    */
+		/* handle messages:
+		{ type: "unload", data: cat.id } -> remove a cat, it provides the cat's id
+		{ type: "new-cat", data: cat } -> add a new cat, it gives you the cat
+		{ type: "moved", data: rooms[cat.roomId] } -> move the cats, gives you the whole room where the cats are
+		{ type: "meow", data: id} -> echo meow, provides id of the meowing cat
+		*/
 		socket.onmessage = function (e) {
 			var o;
 			try { o = JSON.parse(e.data); } catch (ex) { return; }
@@ -303,10 +320,11 @@ var Game = function() {
 			handlers[o.type](o.data);
 		  }
 		};
-
+		
+		//**mike: unused...
 		socket.onclose = function () {};
     
-    // when the page closes, send socket.close to server to remove cat tied to this page
+		// when the page closes, send socket.close to server to remove cat tied to this page
 		window.addEventListener("unload", function () {
 			socket.close();
 		}, false);
@@ -324,13 +342,13 @@ var Game = function() {
 };
 
 function escapeString(str) {
-    return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;")
-        .replace(/\//g, "&#x2F;");
+	return String(str)
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;")
+		.replace(/\//g, "&#x2F;");
 }
 
 function externalHack() {
