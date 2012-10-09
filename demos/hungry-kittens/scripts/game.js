@@ -16,7 +16,6 @@ var Game = function() {
 	var SCENE_WIDTH = 500;
 	var SCENE_HEIGHT = 490;
 	var scene = sjs.Scene({ parent:container, w: SCENE_WIDTH, h: SCENE_HEIGHT, autoPause: false });
-	var scene = scene.Input();
 	var ticker;
 
 	// plays meow sound, if this cat meows also broadcasts to server
@@ -264,7 +263,7 @@ var Game = function() {
 				window.addEventListener('keydown', processKeyDown, false);
 				window.addEventListener('keyup', processKeyUp, false);
         
-				document.getElementById("room").innerHTML = data.roomId;
+				document.getElementById("room").innerHTML = data.roomId + 1;
 			},
       
 			// if a new peer connects, the server broadcasts the new cat
@@ -320,7 +319,10 @@ var Game = function() {
 			handlers[o.type](o.data);
 		  }
 		};
-		    
+		
+		//**mike: unused...
+		socket.onclose = function () {};
+    
 		// when the page closes, send socket.close to server to remove cat tied to this page
 		window.addEventListener("unload", function () {
 			socket.close();
