@@ -5,17 +5,16 @@ var Game = function() {
 	var LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
 
 	var messageBox = document.getElementById("messages");
-
-	//arrows = [left, up, right, down]
-	var arrows = [false, false, false, false];
 	
 	var cats = {};
 	var me, socket;
 
 	// creates a scene using sprite.js
+	var container = document.getElementById('container');
 	var SCENE_WIDTH = 500;
 	var SCENE_HEIGHT = 490;
 	var scene = sjs.Scene({ parent:container, w: SCENE_WIDTH, h: SCENE_HEIGHT, autoPause: false });
+	var input = scene.Input();
 	var ticker;
 
 	// plays meow sound, if this cat meows also broadcasts to server
@@ -143,21 +142,42 @@ var Game = function() {
 	// update the cats' positions
 	var paint = function() {
 		//handle user input
-		//**miket: probably take this part out
 		var x = 0, y = 0, step = 5;
-
-		if (arrows[LEFT]) {
+		var kb = input.keyboard;
+		var left = kb.left;
+		var right = kb.right;
+		
+		if (left) {
 			me.walk();
 			me.lookLeft();
 			x -= step;
 		}
-		if (arrows[RIGHT]) {
+		
+		if (right) {
 			me.walk();
 			me.lookRight();
 			x += step;
 		}
-		if (arrows[UP]){
+		
+		if (kb.up) {
 			me.jump();
+		}
+		
+		//undocumented warp speed!
+		if (left && kb.f) {
+			me.walk();
+			me.lookLeft();
+			x -= 30;
+		}
+		
+		if (right && kb.f) {
+			me.walk();
+			me.lookRight();
+			x += 30;
+		}
+		
+		if (input.keyReleased("space")) {
+			meow(true);
 		}
 
 		// update cats' positions
@@ -198,71 +218,7 @@ var Game = function() {
 				me = cats[data.id];
 				me.position(Math.round(Math.random()*SCENE_WIDTH), SCENE_HEIGHT - me.h);
 				sendMove();
-				
-				//**mike: all this stuff can probably go
-				var processKeyDown = function (e) {
-					if (e.keyCode >= 37 && e.keyCode <= 40){
-						arrows[e.keyCode - 37] = true;
-					} else if (e.keyCode == 32){
-						meow(true);
-					}
-				};
-				
-				var processKeyUp = function (e) {
-					if (e.keyCode >= 37 && e.keyCode <= 40){
-						arrows[e.keyCode - 37] = false;
-					}
-				};
-				
-				//**mike this stuff is redundant too, also seems a little crazy?
-				var dirs = {left: 37, up: 38, right: 39};
-				for (var dir in dirs) {
-					var button = document.querySelector("#button-" + dir);
-					(function (key) {
-						button.addEventListener('touchstart', function (e) {
-							e.preventDefault();
-							e.stopPropagation();
-							processKeyDown({keyCode: key});
-						}, false);
-						
-						button.addEventListener('touchend', function (e) {
-							e.preventDefault();
-							e.stopPropagation();
-							processKeyUp({keyCode: key});
-						}, false);
-						
-						button.addEventListener('mousedown', function (e) {
-							e.preventDefault();
-							e.stopPropagation();
-							processKeyDown({keyCode: key});
-						}, false);
-						
-						button.addEventListener('mouseup', function (e) {
-							e.preventDefault();
-							e.stopPropagation();
-							processKeyUp({keyCode: key});
-						}, false);						
-					})(dirs[dir]);
-				}
-				
-				var buttonMeow = document.querySelector("#button-meow");
-				
-				buttonMeow.addEventListener('touchstart', function (e) {
-					e.preventDefault();
-					e.stopPropagation();
-					processKeyDown({keyCode: 32});
-				}, false);
-				
-				buttonMeow.addEventListener('mouseup', function (e) {
-					e.preventDefault();
-					e.stopPropagation();
-					processKeyDown({keyCode: 32});
-				}, false);
-
-				// listen to keydown/keyup events: arrows = [left, up, right, down] keyCodes 37 to 40, and space = 32  
-				window.addEventListener('keydown', processKeyDown, false);
-				window.addEventListener('keyup', processKeyUp, false);
-        
+         
 				document.getElementById("room").innerHTML = data.roomId + 1;
 			},
       
