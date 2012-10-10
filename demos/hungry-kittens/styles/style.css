@@ -1,57 +1,52 @@
 html, body {
-  margin: 0;
-  padding: 0;
+	margin: 0;
+	padding: 0;
 	color: #eee;
-  overflow: hidden;
-  background: black;
+	overflow: hidden;
+	background: black;
 }
-.sjs {
-	margin: auto;
-	border: 0px solid #000;
-}
+
 #info {
-  margin: auto;
-  padding: 3px 15px 3px 15px;
-  width: 470px;
-  background-color: #fcf6d4;
-  font-family: Courier, monospace;
-  font-size: 0.8em;
-  line-height: 20px;
-  color: #444;
+	margin:auto;
+	position: relative;
+	padding: 3px 15px;
+	width: 470px;
+	background-color: #fcf6d4;
+	font-family: Courier, monospace;
+	font-size: 0.8em;
+	line-height: 20px;
+	color: #444;
 }
-h1, h3 {
-	margin: auto;
-	padding-top: 10px;
-	text-align: center;
-	font-family: 'Special Elite', Courier;
+
+#info > span {
+	position:absolute;
+	right:15px;
+	top:15px;
 }
+
 #container{
-  clear: both;
-  width: 500px;
-  height:500px;
-  margin: auto;
-  background-image: url(../images/backgnd.jpg);
+	clear: both;
+	width: 500px;
+	height:500px;
+	margin: auto;
+	background-image: url(../images/backgnd.jpg);
   /* Background image  Ⓒ A is for Angie http://www.flickr.com/photos/aisforangie/9526485/in/photostream */
-  background-repeat: no-repeat;
+	background-repeat: no-repeat;
 	background-position: 0 0;
 }
-#controls{
-	width: 500px;
-	margin: auto;
-	text-align: center;
-}
-span.nametag {
-    color: #00F;
-    font-family: sans-serif;
-    font-size: 10px;
-    font-weight: bold;
-    text-shadow: 0 0 1px #FFF;
-    display: block;
 
-    user-select: none;
-    -o-user-select: none;
-    -moz-user-select: none;
-    -webkit-user-select: none;
+span.nametag {
+	color: #00F;
+	font-family: sans-serif;
+	font-size: 10px;
+	font-weight: bold;
+	text-shadow: 0 0 1px #FFF;
+	display: block;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;
 }
 
 @media screen and (orientation: landscape) and (max-height: 600px),
