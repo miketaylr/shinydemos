@@ -21,8 +21,9 @@ var Game = function() {
 		a.addEventListener("ended", function () { a.parentNode.removeChild(a); }, false);
 		document.body.appendChild(a);
 		a.play();
-		if (broadcast)
+		if (broadcast) {
 			socket.send(JSON.stringify({ type: "meow", data: me.catId }));
+		}
 	};
 
   // create Cat as a subclass of Sprite
@@ -172,7 +173,7 @@ var Game = function() {
 			x += 30;
 		}
 		
-		if (input.keyReleased("space")) {
+		if (input.keyReleased("space") || input.keyReleased("down")) {
 			meow(true);
 		}
 
@@ -196,8 +197,12 @@ var Game = function() {
 
 	// start game
 	var start = function() {
-
-		var defaultName = "Reginald";
+		//
+		var defaultName = [
+				"Agatha", "Cyrus", "Oswald", "Roscoe", "Holden", "Jasper", 
+				"Wren", "Clementine", "Florence", "Reginald"
+		][Math.floor(Math.random() * 10)];
+		
 		var name = prompt("Please name your kitten", defaultName) || defaultName;
 		//connect to server
 		socket = new WebSocket('ws://' + location.host + '/?name=' + name.slice(0,10));
