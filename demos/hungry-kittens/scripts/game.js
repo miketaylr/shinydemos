@@ -1,11 +1,7 @@
 /* Hungry Kittens
 Author: Luz Caballero (@gerbille)*/
 
-var Game = function() {
-	var LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
-
-	var messageBox = document.getElementById("messages");
-	
+var Game = function() {	
 	var cats = {};
 	var me, socket;
 
